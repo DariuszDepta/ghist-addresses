@@ -1,2 +1,1 @@
-# ghist-addresses
-Address handling with bech32
+# Address handling proposal using bech32
