@@ -16,7 +16,7 @@ pub const CREATOR: &str = "purple1nxvenxve42424242hwamhwamenxvenxvhxf2py";
 /// Salt used in used in `instantiate2_address` function.
 pub const SALT: &str = "61";
 
-/// Generated humanized contract address, like described in the issue:
+/// Generates humanized contract address, like described in the issue:
 /// <https://github.com/CosmWasm/cosmwasm/issues/1648>
 pub fn main() {
     // initialize MockApi, the chain prefix used in test is "purple",
