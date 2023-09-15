@@ -234,4 +234,58 @@ mod tests {
         let recovered = api.addr_humanize(&canonical).unwrap();
         assert_eq!(recovered, original);
     }
+
+    #[test]
+    fn can_be_tricked() {
+        let api = MockApi::default();
+
+        // create nested bech32 address
+        let inner_addr = bech32::encode(
+            &api.bech32_internal_prefix,
+            b"asdf".to_base32(),
+            Variant::Bech32,
+        )
+        .unwrap();
+        let outer_addr = bech32::encode(
+            &api.bech32_prefix,
+            inner_addr.as_bytes().to_base32(),
+            Variant::Bech32,
+        )
+        .unwrap();
+
+        // now canonicalize and humanize again
+        let result = api
+            .addr_humanize(&api.addr_canonicalize(&outer_addr).unwrap())
+            .unwrap();
+
+        // the result is different from the input
+        assert_ne!(outer_addr, result);
+    }
+
+    #[test]
+    fn can_handle_inner_addr() {
+        let api = MockApi::default();
+
+        // create bech32 address with different variant
+        let inner_addr = bech32::encode(
+            &api.bech32_internal_prefix,
+            b"asdf".to_base32(),
+            Variant::Bech32m,
+        )
+        .unwrap();
+        // nest it as data inside an address with correct variant
+        let outer_addr = bech32::encode(
+            &api.bech32_prefix,
+            inner_addr.as_bytes().to_base32(),
+            Variant::Bech32,
+        )
+        .unwrap();
+
+        // now canonicalize and humanize again
+        let result = api
+            .addr_humanize(&api.addr_canonicalize(&outer_addr).unwrap())
+            .unwrap();
+
+        assert_eq!(outer_addr, result);
+    }
 }
