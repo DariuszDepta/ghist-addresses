@@ -12,7 +12,7 @@ pub struct Bech {
 }
 
 impl Default for Bech {
-    /// Creates [Bech] with default prefix.
+    /// Creates [Bech] with the default prefix.
     fn default() -> Self {
         Self {
             prefix: DEFAULT_PREFIX,
@@ -22,6 +22,7 @@ impl Default for Bech {
 }
 
 impl Bech {
+    ///
     pub fn new_b32(prefix: &'static str) -> Self {
         Self {
             prefix,
@@ -29,6 +30,7 @@ impl Bech {
         }
     }
 
+    ///
     pub fn new_b32m(prefix: &'static str) -> Self {
         Self {
             prefix,
@@ -36,12 +38,15 @@ impl Bech {
         }
     }
 
+    ///
     pub fn canonicalize(&self, input: &str) -> Option<Vec<u8>> {
-        if let Ok((prefix, data, _)) = decode(input) {
+        if let Ok((prefix, decoded, _)) = decode(input) {
             if prefix == self.prefix {
-                if let Ok(bytes) = Vec::<u8>::from_base32(&data) {
+                if let Ok(bytes) = Vec::<u8>::from_base32(&decoded) {
                     return Some(bytes);
                 }
+            } else if prefix == self.rev_prefix() {
+                return Some(input.as_bytes().to_vec());
             }
         } else if let Ok(data) = encode(
             &self.rev_prefix(),
@@ -53,21 +58,24 @@ impl Bech {
         None
     }
 
+    ///
     pub fn humanize(&self, canonical: &[u8]) -> Option<String> {
-        if let Ok((prefix, data, _)) = decode(&String::from_utf8_lossy(canonical)) {
-            if prefix == self.rev_prefix() {
-                if let Ok(bytes) = Vec::<u8>::from_base32(&data) {
+        let canonical_str = String::from_utf8_lossy(canonical);
+        if let Ok((prefix, decoded, _)) = decode(canonical_str.as_ref()) {
+            if prefix == self.prefix {
+                return Some(canonical_str.to_string());
+            } else if prefix == self.rev_prefix() {
+                if let Ok(bytes) = Vec::<u8>::from_base32(&decoded) {
                     return Some(String::from_utf8_lossy(&bytes).to_string());
                 }
-            } else if prefix == self.prefix {
-                return Some(String::from_utf8_lossy(&canonical).to_string());
             }
-        } else if let Ok(data) = encode(self.prefix, canonical.to_base32(), self.variant) {
-            return Some(data);
+        } else if let Ok(encoded) = encode(self.prefix, canonical.to_base32(), self.variant) {
+            return Some(encoded);
         }
         None
     }
 
+    ///
     fn rev_prefix(&self) -> String {
         self.prefix.chars().rev().collect::<String>()
     }
@@ -188,11 +196,11 @@ mod tests {
             .unwrap();
 
         // the result is different from the input (outer_addr)
-        assert_ne!(outer_addr, result);
+        assert_ne!(result, outer_addr);
     }
 
     #[test]
-    fn can_handle_inner_addr() {
+    fn canonicalize_and_humanize_can_handle_different_variants() {
         let bech = Bech::default();
 
         // create bech32 address with different variant
@@ -216,6 +224,6 @@ mod tests {
             .humanize(&bech.canonicalize(&outer_addr).unwrap())
             .unwrap();
 
-        assert_ne!(outer_addr, result);
+        assert_ne!(result, outer_addr);
     }
 }
