@@ -40,12 +40,8 @@ impl Bech {
 
     ///
     pub fn canonicalize(&self, input: &str) -> Option<Vec<u8>> {
-        if let Ok((prefix, decoded, _)) = decode(input) {
-            if prefix == self.prefix {
-                if let Ok(bytes) = Vec::<u8>::from_base32(&decoded) {
-                    return Some(bytes);
-                }
-            } else if prefix == self.rev_prefix() {
+        if let Ok((prefix, _, _)) = decode(input) {
+            if prefix == self.prefix || prefix == self.rev_prefix() {
                 return Some(input.as_bytes().to_vec());
             }
         } else if let Ok(data) = encode(
@@ -84,6 +80,8 @@ impl Bech {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    const JUNO_ADDRESS: &str = "juno1v82su97skv6ucfqvuvswe0t5fph7pfsrtraxf0x33d8ylj5qnrysdvkc95";
 
     fn hex(input: &[u8]) -> String {
         input.iter().map(|byte| format!("{:02X}", byte)).collect()
@@ -138,6 +136,46 @@ mod tests {
     }
 
     #[test]
+    fn double_canonicalize_of_short_address_has_no_effect() {
+        let bech = Bech::default();
+        let addr1 = "foobar123";
+        let canonical1 = bech.canonicalize(addr1).unwrap();
+        let addr2 = String::from_utf8_lossy(&canonical1);
+        let canonical2 = bech.canonicalize(addr2.as_ref()).unwrap();
+        assert_eq!(canonical1, canonical2);
+    }
+
+    #[test]
+    fn double_canonicalize_of_long_address_has_no_effect() {
+        let bech = Bech::new_b32("juno");
+        let addr1 = JUNO_ADDRESS;
+        let canonical1 = bech.canonicalize(addr1).unwrap();
+        let addr2 = String::from_utf8_lossy(&canonical1);
+        let canonical2 = bech.canonicalize(addr2.as_ref()).unwrap();
+        assert_eq!(canonical1, canonical2);
+    }
+
+    #[test]
+    fn double_humanize_of_short_address_has_no_effect() {
+        let bech = Bech::new_b32("juno");
+        let canonical1 = "foobar123".as_bytes();
+        let humanized1 = bech.humanize(canonical1).unwrap();
+        let canonical2 = humanized1.as_bytes();
+        let humanized2 = bech.humanize(canonical2).unwrap();
+        assert_eq!(humanized1, humanized2);
+    }
+
+    #[test]
+    fn double_humanize_of_long_address_has_no_effect() {
+        let bech = Bech::new_b32("juno");
+        let canonical1 = JUNO_ADDRESS.as_bytes();
+        let humanized1 = bech.humanize(canonical1).unwrap();
+        let canonical2 = humanized1.as_bytes();
+        let humanized2 = bech.humanize(canonical2).unwrap();
+        assert_eq!(humanized1, humanized2);
+    }
+
+    #[test]
     fn canonicalize_and_humanize_restores_original() {
         let bech = Bech::new_b32("juno");
 
@@ -159,9 +197,8 @@ mod tests {
         let recovered = bech.humanize(&canonical).unwrap();
         assert_eq!(recovered, "cosmwasmchef");
 
-        // Long input (Juno contract address)
-        let original =
-            String::from("juno1v82su97skv6ucfqvuvswe0t5fph7pfsrtraxf0x33d8ylj5qnrysdvkc95");
+        // long input (Juno contract address)
+        let original = JUNO_ADDRESS.to_string();
         let canonical = bech.canonicalize(&original).unwrap();
         let recovered = bech.humanize(&canonical).unwrap();
         assert_eq!(recovered, original);
@@ -196,7 +233,7 @@ mod tests {
             .unwrap();
 
         // the result is different from the input (outer_addr)
-        assert_ne!(result, outer_addr);
+        assert_eq!(result, outer_addr);
     }
 
     #[test]
@@ -224,6 +261,6 @@ mod tests {
             .humanize(&bech.canonicalize(&outer_addr).unwrap())
             .unwrap();
 
-        assert_ne!(result, outer_addr);
+        assert_eq!(result, outer_addr);
     }
 }
