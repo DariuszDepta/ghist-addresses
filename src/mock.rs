@@ -44,9 +44,7 @@ impl Api for MockApi {
         let canonical = self.addr_canonicalize(input)?;
         let normalized = self.addr_humanize(&canonical)?;
         if input != normalized {
-            return Err(StdError::generic_err(
-                "Address not normalized",
-            ));
+            return Err(StdError::generic_err("Address not normalized"));
         }
         Ok(Addr::unchecked(input))
     }
@@ -246,6 +244,9 @@ mod tests {
             Variant::Bech32,
         )
         .unwrap();
+
+        println!("inner_addr = {inner_addr}");
+
         let outer_addr = bech32::encode(
             &api.bech32_prefix,
             inner_addr.as_bytes().to_base32(),
@@ -253,13 +254,26 @@ mod tests {
         )
         .unwrap();
 
+        println!("outer_addr = {outer_addr}");
+
+        let canonical = api.addr_canonicalize(&outer_addr).unwrap();
+        println!("canonical = {canonical}");
+
         // now canonicalize and humanize again
         let result = api
             .addr_humanize(&api.addr_canonicalize(&outer_addr).unwrap())
             .unwrap();
 
+        println!("{result}");
+
         // the result is different from the input
         assert_ne!(outer_addr, result);
+
+        let a = api
+            .addr_humanize(&api.addr_canonicalize(&inner_addr).unwrap())
+            .unwrap();
+
+        println!("{a}");
     }
 
     #[test]
