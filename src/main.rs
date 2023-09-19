@@ -3,6 +3,7 @@
 use crate::mock::MockApi;
 use cosmwasm_std::{instantiate2_address, Api, HexBinary};
 
+mod backup;
 pub mod bech;
 mod mock;
 
