@@ -55,3 +55,13 @@ The _unchecked_ function will be deprecated, so the proper ways of creating `Add
 - using `let checked: Addr = deps.api.addr_validate(input)?`, or
 - using `let checked: Addr = deps.api.addr_humanize(canonical_addr)?`.
 
+## Implementation plan
+
+Adding function `Addr::hashed` is non-breaking change, under condition, that bech32 crate compiles to wasm32
+(can be implemented immediately).
+
+Changing the behaviour of functions `addr_canonicalize` and `addr_humanize` is a breaking change.
+These changes must be postponed to version 2.0. All test cases im `cosmwasm` and tests for contracts (cw-plus)
+have to be reviewed and adjusted.
+
+Adding Bech32 prefix to MockApi seems to be a non-breaking change and can be implemented immediately. 
