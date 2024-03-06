@@ -3,9 +3,8 @@
 mod end;
 
 use crate::end::end;
-use cosmwasm_std::instantiate2_address;
 use cosmwasm_std::testing::MockApi;
-use cosmwasm_std::Api;
+use cosmwasm_std::{instantiate2_address, Api};
 
 fn generate_human_readable_address() {
     let api = MockApi::default();
