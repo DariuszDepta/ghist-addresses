@@ -3,8 +3,9 @@
 mod end;
 
 use crate::end::end;
+use cosmwasm_std::instantiate2_address;
 use cosmwasm_std::testing::MockApi;
-use cosmwasm_std::{instantiate2_address, Api};
+use cosmwasm_std::Api;
 
 fn generate_human_readable_address() {
     let api = MockApi::default();
@@ -61,11 +62,29 @@ fn round_trip() {
     println!("     Validated address: {}", validated_addr);
 }
 
+// tweak Cargo.toml before you uncomment this
+/*
+fn addresses_in_tests() {
+    use cw_multi_test::App;
+
+    let app = App::default();
+    let human_addr = app.api().addr_make("creator");
+    println!("Human-readable address: {}", human_addr);
+    let canonical_addr = app.api().addr_canonicalize(human_addr.as_str()).unwrap();
+    println!("     Canonical address: {}", canonical_addr.to_string());
+    let human_addr = app.api().addr_humanize(&canonical_addr).unwrap();
+    println!("Human-readable address: {}", human_addr);
+    let validated_addr = app.api().addr_validate(human_addr.as_str()).unwrap();
+    println!("     Validated address: {}", validated_addr);
+}
+*/
+
 fn main() {
     generate_human_readable_address();
-    generate_canonical_address();
-    predictable_contract_address();
-    generate_human_readable_address_with_prefix("juno");
-    round_trip();
-    //end();
+    // generate_canonical_address();
+    // predictable_contract_address();
+    // generate_human_readable_address_with_prefix("juno");
+    // round_trip();
+    // addresses_in_tests();
+    // end();
 }

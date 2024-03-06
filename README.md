@@ -73,3 +73,18 @@ Your best friend is `cosmwasm_std::testing::MockApi` who offers you the followin
     - `ed25519_batch_verify`
     - `debug`
 
+### Pure `cw-multi-test`
+
+Your best friend is this time `App.api()`, that wraps `cosmwasm_std::testing::MockApi`, like this:
+
+```Rust
+    let app = App::default ();
+let human_addr = app.api().addr_make("creator");
+println!("Human-readable address: {}", human_addr);
+let canonical_addr = app.api().addr_canonicalize(human_addr.as_str()).unwrap();
+println!("\nCanonical address: {}", canonical_addr.to_string());
+let human_addr = app.api().addr_humanize( & canonical_addr).unwrap();
+println!("Human-readable address: {}", human_addr);
+let validated_addr = app.api().addr_validate(human_addr.as_str()).unwrap();
+println!("     Validated address: {}", validated_addr);
+```
