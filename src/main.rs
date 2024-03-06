@@ -1,18 +1,21 @@
 #![allow(unused)]
 
+mod end;
+
+use crate::end::end;
 use cosmwasm_std::testing::MockApi;
-use cosmwasm_std::Api;
+use cosmwasm_std::{instantiate2_address, Api};
 
 fn generate_human_readable_address() {
     let api = MockApi::default();
     let human_addr = api.addr_make("creator");
-    println!("\nHuman readable address: {}", human_addr.as_str());
+    println!("\nHuman-readable address: {}", human_addr);
 }
 
 fn generate_canonical_address() {
     let api = MockApi::default();
     let human_addr = api.addr_make("creator");
-    println!("\nHuman readable address: {}", human_addr.as_str());
+    println!("\nHuman-readable address: {}", human_addr);
     let canonical_addr = api.addr_canonicalize(human_addr.as_str()).unwrap();
     println!("\nCanonical address: {}", canonical_addr.to_string());
     println!(
@@ -25,7 +28,44 @@ fn generate_canonical_address() {
     );
 }
 
+fn predictable_contract_address() {
+    let api = MockApi::default();
+    let checksum = &[
+        0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24,
+        25, 26, 27, 28, 29, 30, 31,
+    ];
+    let creator = api
+        .addr_canonicalize(api.addr_make("creator").as_str())
+        .unwrap();
+    let salt = &[100, 101, 102];
+    let canonical_addr = instantiate2_address(checksum, &creator, salt).unwrap();
+    let human_addr = api.addr_humanize(&canonical_addr).unwrap();
+    println!("\nHuman-readable address: {}", human_addr);
+}
+
+fn generate_human_readable_address_with_prefix(hrp: &'static str) {
+    let api = MockApi::default().with_prefix(hrp);
+    let human_addr = api.addr_make("creator");
+    println!("\nHuman-readable address: {}", human_addr);
+}
+
+fn round_trip() {
+    let api = MockApi::default().with_prefix("osmo");
+    let human_addr = api.addr_make("bobby");
+    println!("\nHuman-readable address: {}", human_addr.as_str());
+    let canonical_addr = api.addr_canonicalize(human_addr.as_str()).unwrap();
+    let human_addr = api.addr_humanize(&canonical_addr).unwrap();
+    let canonical_addr = api.addr_canonicalize(human_addr.as_str()).unwrap();
+    let human_addr = api.addr_humanize(&canonical_addr).unwrap();
+    let validated_addr = api.addr_validate(human_addr.as_str()).unwrap();
+    println!("     Validated address: {}", validated_addr);
+}
+
 fn main() {
-    // generate_human_readable_address();
+    generate_human_readable_address();
     generate_canonical_address();
+    predictable_contract_address();
+    generate_human_readable_address_with_prefix("juno");
+    round_trip();
+    //end();
 }
