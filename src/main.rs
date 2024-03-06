@@ -1,41 +1,31 @@
-#![doc = include_str!("../README.md")]
+#![allow(unused)]
 
-use crate::mock::MockApi;
-use cosmwasm_std::{instantiate2_address, Api, HexBinary};
+use cosmwasm_std::testing::MockApi;
+use cosmwasm_std::Api;
 
-mod backup;
-pub mod bech;
-mod mock;
+fn generate_human_readable_address() {
+    let api = MockApi::default();
+    let human_addr = api.addr_make("creator");
+    println!("\nHuman readable address: {}", human_addr.as_str());
+}
 
-/// Checksum used in `instantiate2_address` function.
-const CHECKSUM: &str = "13a1fc994cc6d1c81b746ee0c0ff6f90043875e0bf1d9be6b7d779fc978dc2a5";
+fn generate_canonical_address() {
+    let api = MockApi::default();
+    let human_addr = api.addr_make("creator");
+    println!("\nHuman readable address: {}", human_addr.as_str());
+    let canonical_addr = api.addr_canonicalize(human_addr.as_str()).unwrap();
+    println!("\nCanonical address: {}", canonical_addr.to_string());
+    println!(
+        "\nCanonical address as bytes: {:?}",
+        canonical_addr.as_slice()
+    );
+    println!(
+        "\nCanonical address is always {} bytes long",
+        canonical_addr.as_slice().len()
+    );
+}
 
-/// Address of a creator used in `instantiate2_address` function.
-///
-/// The canonical value of this address is: `9999999999aaaaaaaaaabbbbbbbbbbcccccccccc`, and the bech32 prefix is `purple`.
-const CREATOR: &str = "purple1nxvenxve42424242hwamhwamenxvenxvhxf2py";
-
-/// Salt used in used in `instantiate2_address` function.
-const SALT: &str = "61";
-
-/// Generates humanized contract address, like described in this [issue](https://github.com/CosmWasm/cosmwasm/issues/1648).
 fn main() {
-    // initialize MockApi, the chain prefix used in test is "purple",
-    // but every different chain name can be used, e.g. "juno", "osmosis", etc.
-    let api = MockApi::new_with_bech32_prefix("purple");
-
-    // initialize checksum, creator's canonical address and salt for contract address generation
-    let checksum = HexBinary::from_hex(CHECKSUM).unwrap();
-    let creator = api.addr_canonicalize(CREATOR).unwrap();
-    let salt = HexBinary::from_hex(SALT).unwrap();
-
-    // generate contract address
-    let contract_addr =
-        instantiate2_address(checksum.as_slice(), &creator, salt.as_slice()).unwrap();
-
-    // humanize the contract address...
-    let addr = api.addr_humanize(&contract_addr).unwrap();
-
-    // ...and the generated address should look like: purple1t6r960j945lfv8mhl4mage2rg97w63xeynwrupum2s2l7em4lprs9ce5hk
-    println!("{}", addr);
+    // generate_human_readable_address();
+    generate_canonical_address();
 }
