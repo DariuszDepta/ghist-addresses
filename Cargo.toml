@@ -4,5 +4,4 @@ version = "0.0.3"
 edition = "2021"
 
 [dependencies]
-cosmwasm-std = "1.2.8"
-cw-multi-test = { version = "0.20.0", features = ["cosmwasm_1_2"] }
+cosmwasm-std = "2.0.0-rc.0"
